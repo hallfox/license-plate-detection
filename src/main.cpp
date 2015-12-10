@@ -1,6 +1,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 
 int main(int argc, char **argv) {
@@ -20,18 +21,48 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    // Window variables
+    std::string window_name = "License Plate Detector";
+    std::string canny_trackbar_name = "Canny Min Threshold";
+    std::string gauss_trackbar_name = "Gaussian Kernel Size";
+
+    const int trackbar_thresh_max = 100;
+    int canny_min_thresh = 0;
+    int canny_ratio = 3;
+    int gauss_kernel_size = 5;
+
     //Create the display window
-    cv::namedWindow("Visual");
+    cv::namedWindow(window_name);
+
+    // Trackbars for variable customizations
+    cv::createTrackbar(canny_trackbar_name, window_name, &canny_min_thresh,
+                       trackbar_thresh_max);
+    cv::createTrackbar(gauss_trackbar_name, window_name, &gauss_kernel_size,
+                       trackbar_thresh_max);
 
     //Display loop
     bool loop = true;
     while(loop) {
-      imshow("Visual", modified_image);
+      imshow(window_name, modified_image);
 
       char c = cvWaitKey(15);
       switch(c) {
       case 27:  //Exit display loop if ESC is pressed
         loop = false;
+        break;
+      case ' ':
+        original_image.copyTo(modified_image);
+        break;
+      case '1':
+        cv::cvtColor(modified_image, modified_image, cv::COLOR_BGR2GRAY);
+        break;
+      case '2':
+        cv::GaussianBlur(modified_image, modified_image, cv::Size(gauss_kernel_size, gauss_kernel_size), 0);
+        break;
+      case '3':
+        cv::Canny(modified_image, modified_image, canny_min_thresh, canny_min_thresh*canny_ratio);
+        break;
+      default:
         break;
       }
     }
