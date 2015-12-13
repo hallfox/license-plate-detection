@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 
+#include "processing.hpp"
+
 bool verifySizes(cv::RotatedRect mr){
     float error=0.4;
     //NY plate width: 32 height: 17 aspect ratio (width/height): 32/17
@@ -113,7 +115,7 @@ int main(int argc, char **argv) {
         break;
       case '5':
         /* convert image to binary */
-        threshold (modified_image, modified_image, 0, 255, CV_THRESH_OTSU+CV_THRESH_BINARY); 
+        threshold (modified_image, modified_image, 0, 255, CV_THRESH_OTSU+CV_THRESH_BINARY);
         break;
       case '6':
         /* close morphology operation */
@@ -150,6 +152,9 @@ int main(int argc, char **argv) {
                 line(modified_image, vertices[i], vertices[(i+1)%4], cv::Scalar(0,255,0));
         }
       break;
+      case 'b':
+        textBinary(modified_image, modified_image);
+        break;
       default:
         break;
       }
@@ -157,4 +162,6 @@ int main(int argc, char **argv) {
 
     // Cleanup
     cv::destroyAllWindows();
+
+    return 0;
 }

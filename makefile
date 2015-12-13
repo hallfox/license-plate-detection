@@ -1,4 +1,4 @@
-LIB_PATHS=-L/usr/local/opt/opencv3/lib
+LIB_PATHS=-L/usr/local/lib
 LIBS=-lopencv_highgui -lopencv_core -lopencv_imgcodecs -lopencv_imgproc -lm
 # CC := g++
 CC := clang++ # and comment out the linker last line for sanity
@@ -9,7 +9,7 @@ SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS := -g -Wall -std=c++11
-INC := -Iinclude -I/usr/local/opt/opencv3/include -I/usr/local/include/opencv
+INC := -Iinclude -I/usr/local/include/opencv
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."
@@ -20,7 +20,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
 clean:
-	@echo " Cleaning..."; 
+	@echo " Cleaning...";
 	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
 
 dist: doc src include makefile README.md

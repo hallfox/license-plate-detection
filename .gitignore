@@ -26,4 +26,7 @@
 *.exe
 *.out
 *.app
+
 plate_detector
+makefile
+.DS_Store/
