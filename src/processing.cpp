@@ -88,7 +88,7 @@ int countChildren(const std::vector<std::vector<cv::Point> >& contours,
   return count;
 }
 
-void textBinary(const cv::Mat& src, cv::Mat& dst) {
+int textBinary(const cv::Mat& src, cv::Mat& dst) {
   // Get edge image
   cv::Mat img;
   cv::Mat chans[3];
@@ -121,6 +121,7 @@ void textBinary(const cv::Mat& src, cv::Mat& dst) {
       cv::rectangle(img, bound, cv::Scalar(255, 0, 0));
     }
   }
-
+    
   dst = img;
+  return (int)keptRegions.size();
 }

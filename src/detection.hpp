@@ -98,7 +98,7 @@ void detection(cv::Mat &src, std::vector<cv::Mat> &potentialRegions, cv::Mat &ds
      std::cout << "points: " << vertices[0] << ", " << vertices[1] << ", " << vertices[2] << ", " << vertices[3] << std::endl;
      //Rect object to store crop region
      for (int i = 0; i < 4; i++){
-        line(result, vertices[i], vertices[(i+1)%4], cv::Scalar(255, 255, 255));
+        line(result, vertices[i], vertices[(i+1)%4], cv::Scalar(0, 255, 0));
      }
    }
    

@@ -48,7 +48,8 @@ int main(int argc, char **argv) {
     bool loop = true;
     cv::Mat sobelx, sobely, sobel, element;
     std::vector<cv::Mat> potentialRegions;
-
+    int maxContours = -1;
+    int trueLocation = -1;
     while(loop) {
       imshow(window_name, modified_image);
 
@@ -72,13 +73,25 @@ int main(int argc, char **argv) {
         break;
 
       case 'b':
-        textBinary(modified_image, modified_image);
+        maxContours = textBinary(modified_image, modified_image);
         break;
       case 'a':
         detection(modified_image, potentialRegions, modified_image);
         break;
       case 'c':
-        fillHoles(modified_image);
+        //Detect potential plate regions
+        detection(modified_image, potentialRegions, modified_image);
+        for(int i = 0; i < potentialRegions.size(); ++i){
+            //number of contours of each potential region
+            int tmp = textBinary(potentialRegions[i], modified_image);
+            std::cout << "number of contours: " << tmp;
+            if(tmp > maxContours){
+                maxContours = tmp;
+                trueLocation = i;
+            }
+        }
+        //show true license plate location
+        potentialRegions[trueLocation].copyTo(modified_image);
         break;
       default:
         break;
