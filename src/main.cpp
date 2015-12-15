@@ -89,8 +89,13 @@ int main(int argc, char **argv) {
                 maxContours = tmp;
                 trueLocation = i;
             }
+
+            imshow(window_name, potentialRegions[i]);
+            std::cout << " at region " << i+1 << std::endl;
+            sleep(5);
         }
         //show true license plate location
+        std::cout << "True license plate location is at region " << trueLocation+1 << ", number of contours: " << maxContours << std::endl;
         potentialRegions[trueLocation].copyTo(modified_image);
         break;
       default:
