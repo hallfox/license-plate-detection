@@ -154,6 +154,7 @@ int main(int argc, char **argv) {
       break;
       case 'b':
         textBinary(modified_image, modified_image);
+        cv::imwrite("output.png", modified_image);
         break;
       default:
         break;

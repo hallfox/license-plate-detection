@@ -54,7 +54,7 @@ bool hasTextRatio(const std::vector<cv::Point>& contour, cv::Size imgSize) {
 }
 
 bool isConnected(const std::vector<cv::Point>& contour) {
-  cv::Point first = contour[0], last = contour[contour.size() - 1];
+  cv::Point first = contour.front(), last = contour.back();
   return std::abs(first.x - last.x) <= 1 && std::abs(first.y - last.y) <= 1;
 }
 
@@ -78,23 +78,24 @@ int countChildren(const std::vector<std::vector<cv::Point> >& contours,
     count = 1;
   }
 
-  // Count my children's children
-  count += countChildren(contours, hier, child, imgSize);
-
   // Count siblings
   // Make sure it's the children's siblings
   for (int next = hier[child][0]; next > 0; next = hier[next][0]) {
     if (keep(contours[next], imgSize)) {
       count++;
     }
-    count += countChildren(contours, hier, next, imgSize);
+    // count += countChildren(contours, hier, next, imgSize);
   }
-  for (int prev = hier[child][0]; prev > 0; prev = hier[prev][0]) {
+  for (int prev = hier[child][1]; prev > 0; prev = hier[prev][1]) {
     if (keep(contours[prev], imgSize)) {
       count++;
     }
-    count += countChildren(contours, hier, prev, imgSize);
+    // count += countChildren(contours, hier, prev, imgSize);
   }
+
+  // Count my children's children
+  // count += countChildren(contours, hier, child, imgSize);
+
 
   return count;
 }
@@ -120,23 +121,36 @@ void textBinary(const cv::Mat& src, cv::Mat& dst) {
   std::vector<std::pair<std::vector<cv::Point>, cv::Rect> > keptRegions;
   for (int i = 0; i < contours.size(); i++) {
     cv::Rect bound = cv::boundingRect(contours[i]);
+    // cv::rectangle(edges, bound, cv::Scalar(255, 0, 0));
+    cv::putText(edges, std::to_string(i), bound.tl(), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(255));
+    std::cout << i << ": ";
 
     // find the parent contour, if there exists one
     int parent;
     for (parent = hierarchy[i][3];
-         parent > 0 && keep(contours[parent], edges.size());
+         parent > 0 && !keep(contours[parent], edges.size());
          parent = hierarchy[parent][3]);
 
     int numChildren = countChildren(contours, hierarchy, i, edges.size());
     if (keep(contours[i], edges.size()) &&
         !(parent > 0 && numChildren <= 2) &&
         numChildren <= 2) {
-      keptRegions.push_back(std::make_pair(contours[i], bound));
       cv::rectangle(edges, bound, cv::Scalar(255, 0, 0));
+      keptRegions.push_back(std::make_pair(contours[i], bound));
       std::cout << "Region : parent = " << parent << "; numChildren = " << numChildren << "\n";
     }
     else {
-      std::cout << "reject\n";
+      // cv::rectangle(edges, bound, cv::Scalar(255, 0, 0));
+      if (!keep(contours[i], edges.size())) {
+        std::cout << "Size not right/not connected\n";
+      }
+      if((parent > 0 && numChildren <= 2)) {
+        std::cout << "Internal contour\n";
+      }
+      if (numChildren > 2) {
+
+        std::cout << "too many children: " << numChildren << "\n";
+      }
     }
   }
 
@@ -209,6 +223,8 @@ void textBinary(const cv::Mat& src, cv::Mat& dst) {
       }
     }
   }
+
+  // cv::blur(filter, filter, cv::Size(2, 2));
 
   dst = filter;
 }
