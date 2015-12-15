@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
         detection(modified_image, potentialRegions, modified_image);
         for(int i = 0; i < potentialRegions.size(); ++i){
             //number of contours of each potential region
-            int tmp = textBinary(potentialRegions[i], modified_image);
+            int tmp = dummy(potentialRegions[i], modified_image);
             std::cout << "number of contours: " << tmp;
             if(tmp > maxContours){
                 maxContours = tmp;
