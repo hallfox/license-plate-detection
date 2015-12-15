@@ -4,32 +4,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include <vector>
-
 #include "processing.hpp"
+#include "detection.hpp"
 
-bool verifySizes(cv::RotatedRect mr){
-    float error=0.4;
-    //NY plate width: 32 height: 17 aspect ratio (width/height): 32/17
-    float aspect= 32 / 17.0;
-    //Set a min and max area. All other patchs are discarded
-    int min= 15*aspect*15; // minimum area
-    int max= 125*aspect*125; // maximum area
-    //Get only patchs that match to a respect ratio.
-    float rmin= aspect-aspect*error;
-    float rmax= aspect+aspect*error;
-    int area= mr.size.height * mr.size.width;
-    float r= (float)mr.size.width / (float)mr.size.height;
-    if(r<1)
-        r= (float)mr.size.height / (float)mr.size.width;
-    std::cout << "min: " << min << ", max: " << max << ", rmin: " << rmin << ", rmax: " << rmax << ", area: " << area << ", r: " << r;
-    if(( area < min || area > max ) || ( r < rmin || r > rmax )){
-        std::cout << ", false" << std::endl;
-        return false;
-    }else{
-        std::cout << ", true" << std::endl;
-        return true;
-    }
-}
 
 int main(int argc, char **argv) {
     if(argc != 2) {
@@ -70,11 +47,8 @@ int main(int argc, char **argv) {
     //Display loop
     bool loop = true;
     cv::Mat sobelx, sobely, sobel, element;
-    std::vector<std::vector<cv::Point>> contours;
-    std::vector<cv::RotatedRect> rects;
-    std::vector<std::vector<cv::Point> >::iterator itc= contours.begin();
-    cv::Point2f vertices[4];
-    double minVal = 100000, maxVal = -1;
+    std::vector<cv::Mat> potentialRegions;
+
     while(loop) {
       imshow(window_name, modified_image);
 
@@ -93,67 +67,18 @@ int main(int argc, char **argv) {
         cv::GaussianBlur(modified_image, modified_image, cv::Size(gauss_kernel_size, gauss_kernel_size), 0);
         break;
       case '3':
+        std::cout << "canny_min_thresh: " << canny_min_thresh << std::endl;
         cv::Canny(modified_image, modified_image, canny_min_thresh, canny_min_thresh*canny_ratio);
         break;
-/*
-      case '4':
-        cv::Sobel(modified_image, sobelx, CV_32F, 1, 0);
-        cv::minMaxLoc(sobelx, &minVal, &maxVal); //find minimum and maximum intensities
-        std::cout << "minVal : " << minVal << std::endl << "maxVal : " << maxVal << std::endl;
-        sobelx.convertTo(modified_image, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
-        break;
-      case '5':
-        cv::Sobel(modified_image, sobely, CV_32F, 0, 1);
-        cv::minMaxLoc(sobely, &minVal, &maxVal); //find minimum and maximum intensities
-        std::cout << "minVal : " << minVal << std::endl << "maxVal : " << maxVal << std::endl;
-        sobely.convertTo(modified_image, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
-        break;
-*/
-      case '4':
-        /* perform Sobel operator for edge detection */
-        cv::Sobel(modified_image, modified_image, CV_8U, 1, 0, 3, 1, 0);
-        break;
-      case '5':
-        /* convert image to binary */
-        threshold (modified_image, modified_image, 0, 255, CV_THRESH_OTSU+CV_THRESH_BINARY);
-        break;
-      case '6':
-        /* close morphology operation */
-        /* structuring element size: width 20, height 3 */
-        element = getStructuringElement(cv::MORPH_RECT, cv::Size(20, 3));
-        morphologyEx(modified_image, modified_image, CV_MOP_CLOSE, element);
-        break;
-      case '7':
-        /* find contours and eliminated false regions */
-        findContours(modified_image,
-                contours, // a vector of contours
-                CV_RETR_EXTERNAL, // retrieve the external contours
-                CV_CHAIN_APPROX_NONE); // all pixels of each contour
 
-        /* draw contours */
-        //Start to iterate to each contour found
-        itc= contours.begin();
-        //Remove patch that has no inside limits of aspect ratio and area.
-        while (itc!=contours.end()) {
-            //Create bounding rect of object
-            cv::RotatedRect mr= minAreaRect(cv::Mat(*itc));
-            if (!verifySizes(mr)){
-                itc= contours.erase(itc);
-            }else{
-                ++itc;
-                rects.push_back(mr);
-            }
-        }
-        /* draw rectangles to the original image */
-        original_image.copyTo(modified_image);
-        for(int j = 0; j < rects.size(); ++j){
-            rects[j].points(vertices);
-            for (int i = 0; i < 4; i++)
-                line(modified_image, vertices[i], vertices[(i+1)%4], cv::Scalar(0,255,0));
-        }
-      break;
       case 'b':
         textBinary(modified_image, modified_image);
+        break;
+      case 'a':
+        detection(modified_image, potentialRegions, modified_image);
+        break;
+      case 'c':
+        fillHoles(modified_image);
         break;
       default:
         break;
