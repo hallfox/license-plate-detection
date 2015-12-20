@@ -4,6 +4,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 #include "processing.hpp"
 #include "detection.hpp"
 
@@ -72,9 +73,9 @@ int main(int argc, char **argv) {
         cv::Canny(modified_image, modified_image, canny_min_thresh, canny_min_thresh*canny_ratio);
         break;
 
-      case 'b':
-        maxContours = textBinary(modified_image, modified_image);
-        break;
+      // case 'b':
+      //   maxContours = textBinary(modified_image, modified_image);
+      //   break;
       case 'a':
         detection(modified_image, potentialRegions, modified_image);
         break;
@@ -82,26 +83,28 @@ int main(int argc, char **argv) {
         //Detect potential plate regions
         detection(modified_image, potentialRegions, modified_image);
         for(int i = 0; i < potentialRegions.size(); ++i){
-            //number of contours of each potential region
-            int tmp = dummy(potentialRegions[i], modified_image);
-            std::cout << "number of contours: " << tmp;
-            if(tmp > maxContours){
-                maxContours = tmp;
-                trueLocation = i;
-            }
+          //number of contours of each potential region
+          int tmp;
+          textBinary(potentialRegions[i], modified_image, &tmp);
+          std::cout << "number of contours: " << tmp;
+          if(tmp > maxContours){
+            maxContours = tmp;
+            trueLocation = i;
+          }
 
-            imshow(window_name, potentialRegions[i]);
-            std::cout << " at region " << i+1 << std::endl;
-            sleep(5);
+          imshow(window_name, potentialRegions[i]);
+          std::cout << " at region " << i+1 << std::endl;
+          // sleep(2);
         }
-        /* draw rectangles to the original image */
-        original_image.copyTo(modified_image);
-        for(int j = 0; j < rects.size(); ++j){
-            rects[j].points(vertices);
-            for (int i = 0; i < 4; i++)
-                line(modified_image, vertices[i], vertices[(i+1)%4], cv::Scalar(0,255,0));
-        }
-      break;
+        // /* draw rectangles to the original image */
+        // original_image.copyTo(modified_image);
+        // for(int j = 0; j < rects.size(); ++j){
+        //   rects[j].points(vertices);
+        //   for (int i = 0; i < 4; i++)
+        //     line(modified_image, vertices[i], vertices[(i+1)%4], cv::Scalar(0,255,0));
+        // }
+        potentialRegions[trueLocation].copyTo(modified_image);
+        break;
       case 'b':
         textBinary(modified_image, modified_image);
         cv::imwrite("output.png", modified_image);
